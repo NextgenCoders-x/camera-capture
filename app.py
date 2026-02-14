@@ -114,8 +114,5 @@ def send_email():
 if __name__ == '__main__':
     # Make sure the upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-    # Run locally
-    # app.run(host='127.0.0.1', port=5000, debug=False)
 app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
