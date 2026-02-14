@@ -17,8 +17,8 @@ BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
 
 # ⚠️ IMPORTANT:
 # Replace these with your emails
-SENDER_EMAIL = "your_verified_sender@gmail.com"
-RECEIVER_EMAIL = "receiver@gmail.com"
+SENDER_EMAIL = "debuggingwhileloopforever@gmail.com"
+RECEIVER_EMAIL = "debuggingwhileloopforever@gmail.com"
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
